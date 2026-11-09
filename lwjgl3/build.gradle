@@ -1,0 +1,31 @@
+apply plugin: 'application'
+
+mainClassName = 'huber.lwjgl3.Launcher'
+application { mainClass = 'huber.lwjgl3.Launcher' }
+
+sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+}
+
+run {
+    workingDir = rootProject.file('assets')
+    ignoreExitValue = true
+    // Pass -Pargs="--host" etc. through to the game
+    if (project.hasProperty('args')) args project.property('args').toString().split(' ')
+}
+
+// One runnable jar for Windows, Mac and Linux: ./gradlew lwjgl3:dist
+tasks.register('dist', Jar) {
+    archiveFileName = 'Hubergeddon.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.runtimeClasspath, jar
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    manifest { attributes 'Main-Class': 'huber.lwjgl3.Launcher' }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+}

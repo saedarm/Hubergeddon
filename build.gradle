@@ -1,0 +1,33 @@
+subprojects {
+    apply plugin: 'java-library'
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+    repositories { mavenCentral() }
+}
+
+project(':core') {
+    dependencies {
+        api "com.badlogicgames.gdx:gdx:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    }
+    // Dedicated server jar (no graphics): ./gradlew core:serverJar -> core/build/libs/Hubergeddon-server.jar
+    tasks.register('serverJar', Jar) {
+        archiveFileName = 'Hubergeddon-server.jar'
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        dependsOn configurations.runtimeClasspath, jar
+        from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+        with jar
+        manifest { attributes 'Main-Class': 'huber.Server' }
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+    // Headless balance check: ./gradlew sim
+    tasks.register('sim', JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        mainClass = 'huber.Sim'
+        args = (project.findProperty('games') ?: '2000').toString().split(' ').toList()
+    }
+}
+tasks.register('sim') { dependsOn ':core:sim' }

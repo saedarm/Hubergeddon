@@ -1,0 +1,10 @@
+# Keep Unix line endings on scripts the Linux build runs (Fly.io builds on Linux)
+gradlew text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.wav binary
+*.ttf binary
+*.jar binary

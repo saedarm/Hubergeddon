@@ -1,0 +1,30 @@
+# Hubergeddon dedicated server on Fly.io. See "Fly.io server" in README.md.
+# Change `app` to a name nobody else has taken, e.g. "hubergeddon-sam".
+app = "hubergeddon-sam"
+primary_region = "ord"   # Chicago, closest to Ohio
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[services]]
+  internal_port = 7777
+  protocol = "tcp"
+  # Sleep when nobody's connected; wake up when someone joins.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # Fly terminates TLS on port 7777 and passes plain TCP to the game.
+  # Using the TLS handler is what lets the free shared IPv4 address work on a non-web port.
+  [[services.ports]]
+    port = 7777
+    handlers = ["tls"]
+
+  [services.concurrency]
+    type = "connections"
+    soft_limit = 20
+    hard_limit = 40
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
